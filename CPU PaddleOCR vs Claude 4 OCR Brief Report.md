@@ -4,7 +4,7 @@
 
 \# Data & Directory Structure
 
-The dataset is organized by model type. Each subfolder contains raw images, PaddleOCR JSON outputs, and Claude 4 Markdown/JSON outputs.
+The dataset is organized by model type. Each subfolder contains raw images, PaddleOCR JSON/Markdown outputs, and Claude 4 Markdown/JSON outputs.
 ```
 comparison/
 ├── larger_model_over_150s/         # large model (>150s CPU inference)
