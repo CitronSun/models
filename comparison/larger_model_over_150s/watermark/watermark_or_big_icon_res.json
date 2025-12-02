@@ -1,0 +1,580 @@
+{
+    "input_path": "demo/files/watermark_or_big_icon.png",
+    "page_index": null,
+    "model_settings": {
+        "use_doc_preprocessor": true,
+        "use_seal_recognition": false,
+        "use_table_recognition": true,
+        "use_formula_recognition": false,
+        "use_chart_recognition": false,
+        "use_region_detection": true,
+        "format_block_content": false
+    },
+    "parsing_res_list": [
+        {
+            "block_label": "paragraph_title",
+            "block_content": "DRAFT ADVERTISEMENT ",
+            "block_bbox": [
+                781,
+                249,
+                1578,
+                311
+            ],
+            "block_id": 0,
+            "block_order": 1
+        },
+        {
+            "block_label": "image",
+            "block_content": "Did you know \nthat without the extra \n£11,500,000 tax smokers pay \neach day, we could be faced with \nan increase of nearly 5p in the \non basic rate income tax?\n\nIssued by theTobacco Advisory Councilspeaking up for smoers.\nGlen House,Stag Place, London SWiE 5AG \n",
+            "block_bbox": [
+                365,
+                440,
+                2027,
+                2866
+            ],
+            "block_id": 1,
+            "block_order": null
+        },
+        {
+            "block_label": "paragraph_title",
+            "block_content": "04233037",
+            "block_bbox": [
+                2185,
+                2631,
+                2246,
+                2938
+            ],
+            "block_id": 2,
+            "block_order": 2
+        }
+    ],
+    "doc_preprocessor_res": {
+        "input_path": null,
+        "page_index": null,
+        "model_settings": {
+            "use_doc_orientation_classify": false,
+            "use_doc_unwarping": false
+        },
+        "angle": -1
+    },
+    "layout_det_res": {
+        "input_path": null,
+        "page_index": null,
+        "boxes": [
+            {
+                "cls_id": 1,
+                "label": "image",
+                "score": 0.9236090183258057,
+                "coordinate": [
+                    365.97705078125,
+                    440.1905517578125,
+                    2027.79248046875,
+                    2866.11669921875
+                ]
+            },
+            {
+                "cls_id": 0,
+                "label": "paragraph_title",
+                "score": 0.4501318335533142,
+                "coordinate": [
+                    781.7910766601562,
+                    249.87435913085938,
+                    1578.04052734375,
+                    311.3356628417969
+                ]
+            },
+            {
+                "cls_id": 0,
+                "label": "paragraph_title",
+                "score": 0.42937472462654114,
+                "coordinate": [
+                    2185.5625,
+                    2631.85498046875,
+                    2246.3623046875,
+                    2938.76708984375
+                ]
+            }
+        ]
+    },
+    "overall_ocr_res": {
+        "input_path": null,
+        "page_index": null,
+        "model_settings": {
+            "use_doc_preprocessor": false,
+            "use_textline_orientation": false
+        },
+        "dt_polys": [
+            [
+                [
+                    781,
+                    253
+                ],
+                [
+                    1585,
+                    245
+                ],
+                [
+                    1585,
+                    313
+                ],
+                [
+                    781,
+                    321
+                ]
+            ],
+            [
+                [
+                    823,
+                    805
+                ],
+                [
+                    1533,
+                    812
+                ],
+                [
+                    1532,
+                    958
+                ],
+                [
+                    822,
+                    951
+                ]
+            ],
+            [
+                [
+                    810,
+                    1155
+                ],
+                [
+                    1600,
+                    1152
+                ],
+                [
+                    1600,
+                    1226
+                ],
+                [
+                    810,
+                    1229
+                ]
+            ],
+            [
+                [
+                    571,
+                    1231
+                ],
+                [
+                    1599,
+                    1231
+                ],
+                [
+                    1599,
+                    1316
+                ],
+                [
+                    571,
+                    1316
+                ]
+            ],
+            [
+                [
+                    436,
+                    1317
+                ],
+                [
+                    1603,
+                    1304
+                ],
+                [
+                    1604,
+                    1395
+                ],
+                [
+                    437,
+                    1408
+                ]
+            ],
+            [
+                [
+                    467,
+                    1402
+                ],
+                [
+                    1599,
+                    1402
+                ],
+                [
+                    1599,
+                    1493
+                ],
+                [
+                    467,
+                    1493
+                ]
+            ],
+            [
+                [
+                    620,
+                    1496
+                ],
+                [
+                    1506,
+                    1496
+                ],
+                [
+                    1506,
+                    1571
+                ],
+                [
+                    620,
+                    1571
+                ]
+            ],
+            [
+                [
+                    2177,
+                    2630
+                ],
+                [
+                    2246,
+                    2627
+                ],
+                [
+                    2259,
+                    2946
+                ],
+                [
+                    2190,
+                    2948
+                ]
+            ],
+            [
+                [
+                    398,
+                    2701
+                ],
+                [
+                    1997,
+                    2692
+                ],
+                [
+                    1997,
+                    2766
+                ],
+                [
+                    398,
+                    2775
+                ]
+            ],
+            [
+                [
+                    790,
+                    2782
+                ],
+                [
+                    1589,
+                    2775
+                ],
+                [
+                    1589,
+                    2823
+                ],
+                [
+                    790,
+                    2830
+                ]
+            ]
+        ],
+        "text_det_params": {
+            "limit_side_len": 736,
+            "limit_type": "min",
+            "thresh": 0.3,
+            "max_side_limit": 4000,
+            "box_thresh": 0.6,
+            "unclip_ratio": 1.5
+        },
+        "text_type": "general",
+        "textline_orientation_angles": [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1
+        ],
+        "text_rec_score_thresh": 0.0,
+        "return_word_box": false,
+        "rec_texts": [
+            "DRAFT ADVERTISEMENT",
+            "Did you know",
+            "that without the extra",
+            "£11,500,000 tax smokers pay",
+            "each day, we could be faced with",
+            "an increase of nearly 5p in the ",
+            "on basic rate income tax?",
+            "04233037",
+            "Issued by theTobacco Advisory Councilspeaking up for smoers.",
+            "Glen House,Stag Place, London SWiE 5AG"
+        ],
+        "rec_scores": [
+            0.9685397744178772,
+            0.9487690925598145,
+            0.9754547476768494,
+            0.9096021056175232,
+            0.960801362991333,
+            0.9122980833053589,
+            0.9661028981208801,
+            0.9995243549346924,
+            0.7883464694023132,
+            0.8858821988105774
+        ],
+        "rec_polys": [
+            [
+                [
+                    781,
+                    253
+                ],
+                [
+                    1585,
+                    245
+                ],
+                [
+                    1585,
+                    313
+                ],
+                [
+                    781,
+                    321
+                ]
+            ],
+            [
+                [
+                    823,
+                    805
+                ],
+                [
+                    1533,
+                    812
+                ],
+                [
+                    1532,
+                    958
+                ],
+                [
+                    822,
+                    951
+                ]
+            ],
+            [
+                [
+                    810,
+                    1155
+                ],
+                [
+                    1600,
+                    1152
+                ],
+                [
+                    1600,
+                    1226
+                ],
+                [
+                    810,
+                    1229
+                ]
+            ],
+            [
+                [
+                    571,
+                    1231
+                ],
+                [
+                    1599,
+                    1231
+                ],
+                [
+                    1599,
+                    1316
+                ],
+                [
+                    571,
+                    1316
+                ]
+            ],
+            [
+                [
+                    436,
+                    1317
+                ],
+                [
+                    1603,
+                    1304
+                ],
+                [
+                    1604,
+                    1395
+                ],
+                [
+                    437,
+                    1408
+                ]
+            ],
+            [
+                [
+                    467,
+                    1402
+                ],
+                [
+                    1599,
+                    1402
+                ],
+                [
+                    1599,
+                    1493
+                ],
+                [
+                    467,
+                    1493
+                ]
+            ],
+            [
+                [
+                    620,
+                    1496
+                ],
+                [
+                    1506,
+                    1496
+                ],
+                [
+                    1506,
+                    1571
+                ],
+                [
+                    620,
+                    1571
+                ]
+            ],
+            [
+                [
+                    2177,
+                    2630
+                ],
+                [
+                    2246,
+                    2627
+                ],
+                [
+                    2259,
+                    2946
+                ],
+                [
+                    2190,
+                    2948
+                ]
+            ],
+            [
+                [
+                    398,
+                    2701
+                ],
+                [
+                    1997,
+                    2692
+                ],
+                [
+                    1997,
+                    2766
+                ],
+                [
+                    398,
+                    2775
+                ]
+            ],
+            [
+                [
+                    790,
+                    2782
+                ],
+                [
+                    1589,
+                    2775
+                ],
+                [
+                    1589,
+                    2823
+                ],
+                [
+                    790,
+                    2830
+                ]
+            ]
+        ],
+        "rec_boxes": [
+            [
+                781,
+                245,
+                1585,
+                321
+            ],
+            [
+                822,
+                805,
+                1533,
+                958
+            ],
+            [
+                810,
+                1152,
+                1600,
+                1229
+            ],
+            [
+                571,
+                1231,
+                1599,
+                1316
+            ],
+            [
+                436,
+                1304,
+                1604,
+                1408
+            ],
+            [
+                467,
+                1402,
+                1599,
+                1493
+            ],
+            [
+                620,
+                1496,
+                1506,
+                1571
+            ],
+            [
+                2177,
+                2627,
+                2259,
+                2948
+            ],
+            [
+                398,
+                2692,
+                1997,
+                2775
+            ],
+            [
+                790,
+                2775,
+                1589,
+                2830
+            ]
+        ]
+    }
+}
