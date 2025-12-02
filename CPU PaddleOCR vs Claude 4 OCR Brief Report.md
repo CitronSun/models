@@ -5,32 +5,20 @@
 \# Data & Directory Structure
 
 The dataset is organized by model type. Each subfolder contains raw images, PaddleOCR JSON outputs, and Claude 4 Markdown/JSON outputs.
-
+```
 comparison/
-
-├── larger_model_over_150s/       # large model (>150s CPU inference)
-
-│  ├── handwritten_nums/        # handwritten text
-
-│  ├── low_quality_nums/        # blurred/compressed text
-
-│  ├── noisy_handwritten_nums/     # noisy handwritten text
-
-│  └── watermark/            # images with watermark/logo
-
+├── larger_model_over_150s/         # large model (>150s CPU inference)
+│   ├── handwritten_nums/           # handwritten text
+│   ├── low_quality_nums/           # blurred/compressed text
+│   ├── noisy_handwritten_nums/     # noisy handwritten text
+│   └── watermark/                  # images with watermark/logo
 │
-
-└── light_model_within_20s/       # lightweight model (<20s CPU inference)
-
-  ├── handwritten_nums/
-
-  ├── low_quality_nums/
-
-  ├── noisy_handwritten_nums/
-
-  └── watermark/
-
-
+└── light_model_within_20s/         # lightweight model (<20s CPU inference)
+    ├── handwritten_nums/
+    ├── low_quality_nums/
+    ├── noisy_handwritten_nums/
+    └── watermark/
+```
 
 \# Each subfolder contains:
 
