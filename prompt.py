@@ -62,10 +62,10 @@ ADMIN_HEADER_NAME = os.getenv("PROMPT_ADMIN_HEADER", "X-Admin-Token")
 ADMIN_TOKEN = os.getenv("PROMPT_ADMIN_TOKEN", "change-me")
 
 # We assume prompts inside zip follow:
-#   prompts/prompt_s2b_<unixtimestamp>.yml
+#   prompts/prompt_ssbb_<unixtimestamp>.yml
 # plus an optional pin file:
 #   prompts/pin.json (optional)
-PROMPT_RE = re.compile(r".*/?prompts/prompt_s2b_(\d+)\.yml$")
+PROMPT_RE = re.compile(r".*/?prompts/prompt_ssbb_(\d+)\.yml$")
 PIN_JSON_RE = re.compile(r".*/?prompts/pin\.json$")
 
 
@@ -298,7 +298,7 @@ class PromptZipStore:
                             pin_obj = None
 
             if not idx:
-                raise RuntimeError("No prompts/prompt_s2b_<ts>.yml found inside zip")
+                raise RuntimeError("No prompts/prompt_ssbb_<ts>.yml found inside zip")
 
             with self._lock:
                 self._zip_id = zip_name
@@ -774,7 +774,7 @@ def admin_versions():
                 "ts": ts,
                 "time_utc": utc_s,
                 "time_local": local_s,
-                "filename": f"prompt_s2b_{ts}.yml"
+                "filename": f"prompt_ssbb_{ts}.yml"
             })
         versions.sort(key=lambda x: x["ts"], reverse=True)
     except Exception:
