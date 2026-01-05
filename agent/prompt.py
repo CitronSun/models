@@ -840,3 +840,53 @@ def admin_clear_mode():
     """
     runtime.clear_mode_override()
     return {"ok": True, "status": runtime.status()}
+
+
+
+from pathlib import Path
+
+class LocalPromptStore:
+    """
+    Strict local storage:
+    - default prompt fallback MUST be per-project: prompts/projects/<proj>/default.yml
+    - config.json stores per-project selection: projects.<proj>.active_ver/locked + mode_override
+
+    Required layout:
+      <prompts_dir>/
+        projects/
+          <proj>/
+            default.yml
+        config.json
+    """
+
+    def __init__(self, prompts_dir: Path, config_path: Path):
+        self.prompts_dir = prompts_dir
+        self.config_path = config_path
+        self.prompts_dir.mkdir(parents=True, exist_ok=True)
+
+    def read_config(self) -> dict:
+        return read_json(self.config_path)
+
+    def write_config(self, cfg: dict) -> None:
+        atomic_write_json(self.config_path, cfg)
+
+    def get_project_default_path(self, proj: str) -> Path:
+        if not proj:
+            raise ValueError("proj is required")
+        return self.prompts_dir / "projects" / proj / "default.yml"
+
+    def load_default_prompt(self, proj: str) -> dict:
+        """
+        Strict fallback: proj is REQUIRED.
+        Default prompt MUST exist in the image for this proj.
+        """
+        if not proj:
+            raise ValueError("proj is required")
+
+        p = self.get_project_default_path(proj)
+        if not p.exists():
+            raise FileNotFoundError(
+                f"Default prompt not found for proj={proj}. Expected: {p}. "
+                f"Please add prompts/projects/{proj}/default.yml into the image."
+            )
+        return load_yaml_file(p)
