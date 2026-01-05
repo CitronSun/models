@@ -1,0 +1,16 @@
+{
+  "validated": false,
+  "lc_parsed": false,
+  "docs_parsed": false,
+  "checks": {
+    "amount_consistency": "not_run",
+    "date_consistency": "not_run"
+  },
+  "findings": [],
+  "reviewed": false,
+  "finalized": false,
+  "budget": {
+    "max_steps": 10,
+    "steps_used": 0
+  }
+}
