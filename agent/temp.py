@@ -437,3 +437,120 @@ class PromptZipStore:
         """
         with self._lock:
             return self._pin_json
+
+
+
+    # -----------------------------
+    # Mode override controls
+    # -----------------------------
+    def _list_zip_projects_safe(self) -> list[str]:
+        """
+        Best-effort get project list from zip_store without breaking service.
+        Supports both .list_projects() and .available_projects().
+        """
+        try:
+            if hasattr(self.zip_store, "list_projects"):
+                return list(self.zip_store.list_projects())
+            if hasattr(self.zip_store, "available_projects"):
+                return list(self.zip_store.available_projects())
+        except Exception:
+            pass
+        return []
+
+    def _iter_known_projects(self, cfg: dict) -> list[str]:
+        """
+        Decide which projects to (re)initialize when mode changes.
+        Sources:
+          1) config.json["projects"].keys()
+          2) zip_store discovered project keys (if zip available)
+        """
+        projs = set()
+
+        projects_cfg = cfg.get("projects", {})
+        if isinstance(projects_cfg, dict):
+            for p in projects_cfg.keys():
+                if p:
+                    projs.add(p)
+
+        for p in self._list_zip_projects_safe():
+            if p:
+                projs.add(p)
+
+        return sorted(projs)
+
+    def _set_local_default_for_projects(self, projects: list[str]):
+        """
+        Immediately set active registries to local default for each project.
+        """
+        for proj in projects:
+            try:
+                default_data = self.local_store.load_default_prompt(proj=proj)  # proj REQUIRED
+                # local mode: "locked" is not meaningful; keep config value if you want
+                self._set_active_registry(
+                    proj,
+                    default_data,
+                    source="default",
+                    extra={"zip_id": None, "proj": proj, "prompt_ver": None, "locked": False},
+                )
+            except Exception as e:
+                print(f"[runtime] local default set failed proj={proj}: {e}")
+
+    def set_mode_override(self, mode: str):
+        """
+        Set runtime mode override (local/remote) in config.json and apply immediately.
+
+        Strict proj rule:
+        - We DO NOT assume any default project.
+        - We apply to "known projects" only (from config + zip if available).
+        """
+        if mode not in ("local", "remote"):
+            raise ValueError("mode must be local or remote")
+
+        cfg = self.local_store.read_config()
+        cfg["mode_override"] = mode
+        cfg["updated_at"] = _now_utc_iso()
+        self.local_store.write_config(cfg)
+
+        projects = self._iter_known_projects(cfg)
+
+        if mode == "local":
+            # Immediately switch known projects to local defaults
+            if projects:
+                self._set_local_default_for_projects(projects)
+            return
+
+        # mode == "remote"
+        # Try to initialize known projects from remote (remote-ver -> remote-latest -> default fallback)
+        # Note: initialize_proj() internally calls zip_store.refresh_if_needed(), which is throttled.
+        for proj in projects:
+            try:
+                self.initialize_proj(proj)
+            except Exception as e:
+                print(f"[runtime] set_mode_override(remote) init failed proj={proj}: {e}")
+
+    def clear_mode_override(self):
+        """
+        Clear runtime mode override in config.json and apply behavior based on env PROMPT_MODE.
+
+        Strict proj rule:
+        - Reapply only for known projects (from config + zip if available).
+        """
+        cfg = self.local_store.read_config()
+        cfg.pop("mode_override", None)
+        cfg["updated_at"] = _now_utc_iso()
+        self.local_store.write_config(cfg)
+
+        effective = self.get_effective_mode()  # now follows env (since override removed)
+        projects = self._iter_known_projects(cfg)
+
+        if effective == "local":
+            if projects:
+                self._set_local_default_for_projects(projects)
+            return
+
+        # effective == "remote"
+        for proj in projects:
+            try:
+                self.initialize_proj(proj)
+            except Exception as e:
+                print(f"[runtime] clear_mode_override(remote) init failed proj={proj}: {e}")
