@@ -626,3 +626,35 @@ def apply_mode_for_proj(self, proj: str, mode: str, ver: str | None = None, lock
     pcfg["last_zip_id"] = bundle.zip_id
     pcfg["updated_at"] = _now_utc_iso()
     self.local_store.write_config(cfg)
+
+    def clear_mode_for_proj(self, proj: str):
+        """
+        Clear manual selection for ONE project and re-apply system default behavior.
+
+        After clear:
+          - No active_ver pin
+          - No lock
+          - Active registry is rebuilt according to effective mode:
+              * remote  -> latest
+              * local   -> default.yml
+        """
+        if not proj:
+            raise ValueError("proj is required")
+
+        # 1. Clear per-proj config
+        cfg = self.local_store.read_config()
+        pcfg = self._get_proj_cfg(cfg, proj)
+
+        pcfg.pop("active_ver", None)
+        pcfg.pop("last_zip_id", None)
+        pcfg.pop("locked", None)
+        pcfg["updated_at"] = _now_utc_iso()
+
+        self.local_store.write_config(cfg)
+
+        # 2. Re-initialize this project according to effective mode
+        try:
+            self.initialize_proj(proj)
+        except Exception as e:
+            # initialize_proj already has fallback to local default
+            print(f"[runtime] clear_mode_for_proj init failed proj={proj}: {e}")
