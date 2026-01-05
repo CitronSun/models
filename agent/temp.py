@@ -554,3 +554,75 @@ class PromptZipStore:
                 self.initialize_proj(proj)
             except Exception as e:
                 print(f"[runtime] clear_mode_override(remote) init failed proj={proj}: {e}")
+
+
+
+def apply_mode_for_proj(self, proj: str, mode: str, ver: str | None = None, lock: bool | None = None):
+    """
+    Apply mode for ONE project immediately (update active registry + config).
+
+    mode:
+      - "local": use local default.yml for this proj
+      - "remote": use remote prompt for this proj (ver if provided else latest)
+
+    ver:
+      - only used when mode == "remote"
+      - if None => latest
+
+    lock:
+      - only meaningful when mode == "remote"
+      - if None:
+          - when ver is provided => default True (stable)
+          - when ver is None (latest) => default False (follow latest)
+    """
+    if not proj:
+        raise ValueError("proj is required")
+    if mode not in ("local", "remote"):
+        raise ValueError("mode must be 'local' or 'remote'")
+
+    cfg = self.local_store.read_config()
+    pcfg = self._get_proj_cfg(cfg, proj)
+
+    if mode == "local":
+        # local default
+        default_data = self.local_store.load_default_prompt(proj=proj)
+        self._set_active_registry(
+            proj,
+            default_data,
+            source="local-default",
+            extra={"zip_id": None, "proj": proj, "prompt_ver": None, "locked": False},
+        )
+
+        # Update config: in local mode, remote selection is not meaningful
+        pcfg["locked"] = False
+        pcfg.pop("active_ver", None)
+        pcfg.pop("last_zip_id", None)
+        pcfg["updated_at"] = _now_utc_iso()
+        self.local_store.write_config(cfg)
+        return
+
+    # mode == "remote"
+    self.zip_store.refresh_if_needed()
+
+    if ver:
+        bundle = self.zip_store.get_by_proj_ver(proj, ver)
+        effective_lock = True if lock is None else bool(lock)
+        source = "remote-ver"
+    else:
+        bundle = self.zip_store.get_latest(proj)
+        effective_lock = False if lock is None else bool(lock)
+        source = "remote-latest"
+
+    self._set_active_registry(
+        proj,
+        bundle.data,
+        source=source,
+        extra={"zip_id": bundle.zip_id, "proj": proj, "prompt_ver": bundle.ver, "locked": effective_lock},
+    )
+
+    # Persist to config.json
+    pcfg["active_ver"] = bundle.ver
+    pcfg["locked"] = effective_lock
+    pcfg["last_zip_id"] = bundle.zip_id
+    pcfg["updated_at"] = _now_utc_iso()
+    self.local_store.write_config(cfg)
