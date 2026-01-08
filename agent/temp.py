@@ -658,3 +658,25 @@ def apply_mode_for_proj(self, proj: str, mode: str, ver: str | None = None, lock
         except Exception as e:
             # initialize_proj already has fallback to local default
             print(f"[runtime] clear_mode_for_proj init failed proj={proj}: {e}")
+
+
+# middleware/token_context.py
+from fastapi import Request
+from starlette.middleware.base import BaseHTTPMiddleware
+from context.token_context import current_token
+
+class TokenContextMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        token = request.app.state.token
+        token_ctx = current_token.set(token)
+        try:
+            return await call_next(request)
+        finally:
+            current_token.reset(token_ctx)
+
+# app.py
+from fastapi import FastAPI
+from middleware.token_context import TokenContextMiddleware
+
+app = FastAPI()
+app.add_middleware(TokenContextMiddleware)
