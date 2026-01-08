@@ -680,3 +680,49 @@ from middleware.token_context import TokenContextMiddleware
 
 app = FastAPI()
 app.add_middleware(TokenContextMiddleware)
+
+
+from dataclasses import dataclass
+from typing import Any
+from .enums import ProjectEnum
+
+@dataclass(frozen=True)
+class RuntimeCtx:
+    runtime: Any          # 如果你有 PromptRuntime 类型，可以替换 Any
+    project: ProjectEnum
+
+
+from fastapi import Request, HTTPException, Query
+from .enums import ProjectEnum
+from .runtime_ctx import RuntimeCtx
+
+def _get_manager(request: Request):
+    mgr = getattr(request.app.state, "project_manager", None)
+    if mgr is None:
+        raise HTTPException(status_code=500, detail="project_manager not initialized")
+    return mgr
+
+def get_runtime_by_project(request: Request, project: ProjectEnum) -> RuntimeCtx:
+    mgr = _get_manager(request)
+    runtime = mgr.get(project)
+    if runtime is None:
+        # 如果你的 mgr.get 一定不会 None，可以删掉这一段
+        raise HTTPException(status_code=404, detail=f"runtime not found for project={project}")
+    return RuntimeCtx(runtime=runtime, project=project)
+
+def make_runtime_dep(project: ProjectEnum):
+    """
+    工厂：固定 project，不在 Swagger 暴露 project 参数
+    """
+    def _dep(request: Request) -> RuntimeCtx:
+        return get_runtime_by_project(request, project)
+    return _dep
+
+def get_runtime_any_project(
+    request: Request,
+    project: ProjectEnum = Query(..., description="Project to use"),
+) -> RuntimeCtx:
+    """
+    通用：暴露 project 下拉框（只有需要用户选择 project 的接口才用它）
+    """
+    return get_runtime_by_project(request, project)
