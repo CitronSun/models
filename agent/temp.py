@@ -726,3 +726,29 @@ def get_runtime_any_project(
     通用：暴露 project 下拉框（只有需要用户选择 project 的接口才用它）
     """
     return get_runtime_by_project(request, project)
+
+
+from fastapi import APIRouter, Depends
+from .enums import ProjectEnum
+from .runtime_ctx import RuntimeCtx
+from .runtime_deps import make_runtime_dep, get_runtime_any_project
+
+router = APIRouter()
+
+# 固定 project：Swagger 不显示 project 参数
+get_runtime_main = make_runtime_dep(ProjectEnum.main_doc)
+get_runtime_s2b = make_runtime_dep(ProjectEnum.s2b_doc)
+
+@router.get("/main/do")
+def do_main(ctx: RuntimeCtx = Depends(get_runtime_main)):
+    # ctx.runtime / ctx.project 更清晰
+    return {"project": ctx.project, "runtime_type": str(type(ctx.runtime))}
+
+@router.get("/s2b/do")
+def do_s2b(ctx: RuntimeCtx = Depends(get_runtime_s2b)):
+    return {"project": ctx.project, "runtime_type": str(type(ctx.runtime))}
+
+# 通用：Swagger 会出现 project 下拉框
+@router.get("/any/do")
+def do_any(ctx: RuntimeCtx = Depends(get_runtime_any_project)):
+    return {"project": ctx.project, "runtime_type": str(type(ctx.runtime))}
