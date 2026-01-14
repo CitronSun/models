@@ -752,3 +752,121 @@ def do_s2b(ctx: RuntimeCtx = Depends(get_runtime_s2b)):
 @router.get("/any/do")
 def do_any(ctx: RuntimeCtx = Depends(get_runtime_any_project)):
     return {"project": ctx.project, "runtime_type": str(type(ctx.runtime))}
+
+
+from fastapi import FastAPI, Query
+from fastapi.responses import JSONResponse
+import os, sys, time, platform, traceback, importlib, importlib.util
+from pathlib import Path
+import pkgutil
+
+app = FastAPI()
+
+def _safe_read_text(p: Path, limit: int = 4000) -> str:
+    try:
+        s = p.read_text(encoding="utf-8", errors="replace")
+        return s[:limit]
+    except Exception as e:
+        return f"<read_error: {e}>"
+
+def _import_probe(module_name: str):
+    """Try to find spec and import a module; return detailed info."""
+    info = {"module": module_name}
+    try:
+        spec = importlib.util.find_spec(module_name)
+        info["find_spec"] = {
+            "found": spec is not None,
+            "origin": getattr(spec, "origin", None) if spec else None,
+            "submodule_search_locations": (
+                list(spec.submodule_search_locations) if spec and spec.submodule_search_locations else None
+            ),
+        }
+    except Exception as e:
+        info["find_spec_error"] = repr(e)
+
+    try:
+        m = importlib.import_module(module_name)
+        info["import_ok"] = True
+        info["module_file"] = getattr(m, "__file__", None)
+        info["module_package"] = getattr(m, "__package__", None)
+        info["module_path"] = getattr(m, "__path__", None)  # for packages
+        # Optional: try to read first bytes of module file for sanity
+        if info["module_file"]:
+            p = Path(info["module_file"])
+            info["module_file_exists"] = p.exists()
+            info["module_file_head"] = _safe_read_text(p, limit=800) if p.exists() else None
+    except Exception:
+        info["import_ok"] = False
+        info["traceback"] = traceback.format_exc()
+
+    return info
+
+@app.get("/__debug__/import")
+def debug_import(
+    probe: list[str] = Query(
+        default=[
+            # core probes
+            "pkgtest",
+            "pkgtest.mod_a",
+            "pkgtest.subpkg",
+            "pkgtest.subpkg.mod_b",
+            # optional probes for your real folder name (replace later)
+            # "myfolder",
+            # "myfolder.some_module",
+            # also probe a "doc" package name to see if Python thinks doc is a package
+            "doc",
+            "doc.pkgtest",
+        ]
+    ),
+    list_dir: str = Query(default="/app/doc"),
+    list_max: int = Query(default=200),
+):
+    now = time.time()
+    cwd = os.getcwd()
+
+    base = Path(list_dir)
+    dir_listing = {"path": str(base), "exists": base.exists(), "is_dir": base.is_dir()}
+    if base.exists() and base.is_dir():
+        items = []
+        for i, child in enumerate(sorted(base.iterdir(), key=lambda x: x.name)):
+            if i >= list_max:
+                items.append({"name": "...", "type": "truncated"})
+                break
+            items.append({
+                "name": child.name,
+                "type": "dir" if child.is_dir() else "file",
+                "has_init": (child / "__init__.py").exists() if child.is_dir() else None,
+            })
+        dir_listing["items"] = items
+    else:
+        dir_listing["items"] = None
+
+    # list importable top-level modules seen in current working dir ('.')
+    top_level_modules = []
+    try:
+        for m in pkgutil.iter_modules([cwd]):
+            top_level_modules.append(m.name)
+    except Exception as e:
+        top_level_modules = [f"<pkgutil_error: {e}>"]
+
+    result = {
+        "time": now,
+        "python": {
+            "version": sys.version,
+            "executable": sys.executable,
+            "platform": platform.platform(),
+        },
+        "process": {
+            "cwd": cwd,
+            "argv": sys.argv,
+        },
+        "sys_path": sys.path,
+        "dir_listing": dir_listing,
+        "pkgutil_top_level_in_cwd": sorted(top_level_modules)[:400],
+        "probes": [],
+    }
+
+    for name in probe:
+        result["probes"].append(_import_probe(name))
+
+    return JSONResponse(result)
