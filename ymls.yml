@@ -1,0 +1,25 @@
+families:
+  shipping: &shipping |
+    (港口/装运日期/运输方式/承运人通用规则...)
+
+  commercial: &commercial |
+    (货描/数量/单价/币种通用规则...)
+
+  insurance: &insurance |
+    (险别/保额/币种/受益人通用规则...)
+
+doc_snippets:
+  bill_of_lading:
+    base: shipping
+    extra: |
+      (B/L 独有：Shipped on board、Originals count...)
+
+  air_waybill:
+    base: shipping
+    extra: |
+      (AWB 独有：签发人/不可转让...)
+
+  invoice:
+    base: commercial
+    extra: |
+      (Invoice 独有：发票号/发票金额容差...)
