@@ -1,0 +1,19 @@
+Private Sub Worksheet_SelectionChange(ByVal Target As Range)
+
+    Cells.FormatConditions.Delete
+
+    Dim r As Long
+    Dim c As Long
+
+    r = Target.Row
+    c = Target.Column
+
+    Cells.FormatConditions.Add Type:=xlExpression, _
+        Formula1:="=ROW()=" & r
+    Cells.FormatConditions(Cells.FormatConditions.Count).Interior.Color = RGB(220, 230, 241)
+
+    Cells.FormatConditions.Add Type:=xlExpression, _
+        Formula1:="=COLUMN()=" & c
+    Cells.FormatConditions(Cells.FormatConditions.Count).Interior.Color = RGB(220, 230, 241)
+
+End Sub
