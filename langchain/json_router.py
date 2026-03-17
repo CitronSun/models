@@ -35,13 +35,7 @@ class JSONToolRouter:
     3) 如果 call_tool：执行对应 tool.invoke(args)，把结果再喂回 LLM，继续 loop
     """
 
-    def __init__(
-        self,
-        llm: InternalLLMClient,
-        tools: List[BaseTool],
-        *,
-        max_steps: int = 15,
-    ) -> None:
+    def __init__(self, llm: InternalLLMClient, tools: List[BaseTool], *, max_steps: int = 15) -> None:
         self.llm = llm
         self.tools = tools
         self.tool_map = {t.name: t for t in tools}
@@ -50,61 +44,41 @@ class JSONToolRouter:
     def run(self, *, goal: str, state: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         state = state or {}
 
-        messages: List[LLMMessage] = [
-            LLMMessage(
-                role="system",
-                content=self._build_system_prompt(),
-            ),
-            LLMMessage(
-                role="user",
-                content=self._build_user_prompt(goal=goal, state=state),
-            ),
+        messages: List[Dict[str, str]] = [
+            {"role": "system", "content": self._build_system_prompt()},
+            {"role": "user", "content": self._build_user_prompt(goal=goal, state=state)},
         ]
 
         steps: List[Dict[str, Any]] = []
 
         for _ in range(self.max_steps):
-            raw = self.llm.chat(messages, temperature=0.0)
-            messages.append(LLMMessage(role="assistant", content=raw))
+            raw = self.llm.chat(messages, temperature=0.0)  # ✅ 这里直接用你的 payload 格式
+            messages.append({"role": "assistant", "content": raw})
 
-            decision = self._parse_json(raw)
+            decision = json.loads(raw)  # 仍然要求模型输出严格 JSON
 
             if decision["action"] == "final":
                 return {"final": decision["final"], "steps": steps}
 
-            if decision["action"] != "call_tool":
-                # 非法 action：直接终止（也可以改成 HITL）
-                return {"final": f"Router error: invalid action {decision['action']}", "steps": steps}
-
             tool_name = decision["tool_name"]
             args = decision.get("args", {})
 
-            if tool_name not in self.tool_map:
+            tool = self.tool_map.get(tool_name)
+            if not tool:
                 err = f"Unknown tool: {tool_name}"
                 steps.append({"tool": tool_name, "args": args, "error": err})
-                # 把错误反馈给模型，让它换个工具/修正
-                messages.append(LLMMessage(role="user", content=f"TOOL_ERROR: {err}"))
+                messages.append({"role": "user", "content": f"TOOL_ERROR: {err}"})
                 continue
 
-            tool = self.tool_map[tool_name]
-
             try:
-                result = tool.invoke(args)  # StructuredTool 会做基本参数校验
+                result = tool.invoke(args)
                 steps.append({"tool": tool_name, "args": args, "result": result})
-
-                # 把工具结果喂回模型，让它决定下一步
                 result_str = result if isinstance(result, str) else json.dumps(result, ensure_ascii=False)
-                messages.append(
-                    LLMMessage(
-                        role="user",
-                        content=f"TOOL_RESULT ({tool_name}): {result_str}",
-                    )
-                )
-
+                messages.append({"role": "user", "content": f"TOOL_RESULT ({tool_name}): {result_str}"})
             except Exception as e:
                 err = f"{type(e).__name__}: {e}"
                 steps.append({"tool": tool_name, "args": args, "error": err})
-                messages.append(LLMMessage(role="user", content=f"TOOL_ERROR ({tool_name}): {err}"))
+                messages.append({"role": "user", "content": f"TOOL_ERROR ({tool_name}): {err}"})
 
         return {"final": "Max steps exceeded", "steps": steps}
 
