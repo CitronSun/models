@@ -38,3 +38,11 @@ class InternalLLMClient:
 
         # <<<你需要改这里>>>：如果你们返回结构不是这个路径，就改这里
         return data["choices"][0]["message"]["content"]
+
+    a="""
+    However, there are a few drawbacks:
+
+1. During the self-introduction and when answering questions, he appeared to be reading from prepared notes. For several questions, he seemed to rely on pre-written answers or tried to give a high-level overview of the project instead of addressing the specific question directly. It’s unclear whether this was due to a lack of hands-on experience on those specific points, or because he was trying to avoid answering spontaneously in English.
+
+2. Regarding the OCR-related question, I repeated it three times, but he still didn’t seem to fully understand it. This raises some concerns about his English communication skills (assuming that my questions were clear and understandable).
+    """
